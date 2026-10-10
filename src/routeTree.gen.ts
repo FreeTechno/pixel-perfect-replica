@@ -10,33 +10,154 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AnalysesRouteImport } from './routes/analyses'
+import { Route as EbooksRouteImport } from './routes/ebooks'
+import { Route as HistoriqueRouteImport } from './routes/historique'
+import { Route as ImportRouteImport } from './routes/import'
+import { Route as ParametresRouteImport } from './routes/parametres'
+import { Route as PerformancesRouteImport } from './routes/performances'
+import { Route as ValidationRouteImport } from './routes/validation'
+import { Route as MatchsIndexRouteImport } from './routes/matchs.index'
+import { Route as MatchsIdRouteImport } from './routes/matchs.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnalysesRoute = AnalysesRouteImport.update({
+  id: '/analyses',
+  path: '/analyses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EbooksRoute = EbooksRouteImport.update({
+  id: '/ebooks',
+  path: '/ebooks',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HistoriqueRoute = HistoriqueRouteImport.update({
+  id: '/historique',
+  path: '/historique',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImportRoute = ImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ParametresRoute = ParametresRouteImport.update({
+  id: '/parametres',
+  path: '/parametres',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PerformancesRoute = PerformancesRouteImport.update({
+  id: '/performances',
+  path: '/performances',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ValidationRoute = ValidationRouteImport.update({
+  id: '/validation',
+  path: '/validation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchsIndexRoute = MatchsIndexRouteImport.update({
+  id: '/matchs/',
+  path: '/matchs/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MatchsIdRoute = MatchsIdRouteImport.update({
+  id: '/matchs/$id',
+  path: '/matchs/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analyses': typeof AnalysesRoute
+  '/ebooks': typeof EbooksRoute
+  '/historique': typeof HistoriqueRoute
+  '/import': typeof ImportRoute
+  '/parametres': typeof ParametresRoute
+  '/performances': typeof PerformancesRoute
+  '/validation': typeof ValidationRoute
+  '/matchs/$id': typeof MatchsIdRoute
+  '/matchs/': typeof MatchsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analyses': typeof AnalysesRoute
+  '/ebooks': typeof EbooksRoute
+  '/historique': typeof HistoriqueRoute
+  '/import': typeof ImportRoute
+  '/parametres': typeof ParametresRoute
+  '/performances': typeof PerformancesRoute
+  '/validation': typeof ValidationRoute
+  '/matchs/$id': typeof MatchsIdRoute
+  '/matchs': typeof MatchsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analyses': typeof AnalysesRoute
+  '/ebooks': typeof EbooksRoute
+  '/historique': typeof HistoriqueRoute
+  '/import': typeof ImportRoute
+  '/parametres': typeof ParametresRoute
+  '/performances': typeof PerformancesRoute
+  '/validation': typeof ValidationRoute
+  '/matchs/$id': typeof MatchsIdRoute
+  '/matchs/': typeof MatchsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/analyses'
+    | '/ebooks'
+    | '/historique'
+    | '/import'
+    | '/parametres'
+    | '/performances'
+    | '/validation'
+    | '/matchs/$id'
+    | '/matchs/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/analyses'
+    | '/ebooks'
+    | '/historique'
+    | '/import'
+    | '/parametres'
+    | '/performances'
+    | '/validation'
+    | '/matchs/$id'
+    | '/matchs'
+  id:
+    | '__root__'
+    | '/'
+    | '/analyses'
+    | '/ebooks'
+    | '/historique'
+    | '/import'
+    | '/parametres'
+    | '/performances'
+    | '/validation'
+    | '/matchs/$id'
+    | '/matchs/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalysesRoute: typeof AnalysesRoute
+  EbooksRoute: typeof EbooksRoute
+  HistoriqueRoute: typeof HistoriqueRoute
+  ImportRoute: typeof ImportRoute
+  ParametresRoute: typeof ParametresRoute
+  PerformancesRoute: typeof PerformancesRoute
+  ValidationRoute: typeof ValidationRoute
+  MatchsIdRoute: typeof MatchsIdRoute
+  MatchsIndexRoute: typeof MatchsIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +169,83 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analyses': {
+      id: '/analyses'
+      path: '/analyses'
+      fullPath: '/analyses'
+      preLoaderRoute: typeof AnalysesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ebooks': {
+      id: '/ebooks'
+      path: '/ebooks'
+      fullPath: '/ebooks'
+      preLoaderRoute: typeof EbooksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/historique': {
+      id: '/historique'
+      path: '/historique'
+      fullPath: '/historique'
+      preLoaderRoute: typeof HistoriqueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/import': {
+      id: '/import'
+      path: '/import'
+      fullPath: '/import'
+      preLoaderRoute: typeof ImportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/parametres': {
+      id: '/parametres'
+      path: '/parametres'
+      fullPath: '/parametres'
+      preLoaderRoute: typeof ParametresRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/performances': {
+      id: '/performances'
+      path: '/performances'
+      fullPath: '/performances'
+      preLoaderRoute: typeof PerformancesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/validation': {
+      id: '/validation'
+      path: '/validation'
+      fullPath: '/validation'
+      preLoaderRoute: typeof ValidationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/matchs/': {
+      id: '/matchs/'
+      path: '/matchs'
+      fullPath: '/matchs/'
+      preLoaderRoute: typeof MatchsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/matchs/$id': {
+      id: '/matchs/$id'
+      path: '/matchs/$id'
+      fullPath: '/matchs/$id'
+      preLoaderRoute: typeof MatchsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalysesRoute: AnalysesRoute,
+  EbooksRoute: EbooksRoute,
+  HistoriqueRoute: HistoriqueRoute,
+  ImportRoute: ImportRoute,
+  ParametresRoute: ParametresRoute,
+  PerformancesRoute: PerformancesRoute,
+  ValidationRoute: ValidationRoute,
+  MatchsIdRoute: MatchsIdRoute,
+  MatchsIndexRoute: MatchsIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
