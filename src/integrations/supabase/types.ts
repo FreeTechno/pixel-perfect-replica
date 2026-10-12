@@ -14,16 +14,315 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      analyses: {
+        Row: {
+          id: string
+          match_id: string
+          notes: Json
+          outcome: string | null
+          selection: string
+          status: string
+          summary: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          match_id: string
+          notes?: Json
+          outcome?: string | null
+          selection?: string
+          status?: string
+          summary?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          match_id?: string
+          notes?: Json
+          outcome?: string | null
+          selection?: string
+          status?: string
+          summary?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analyses_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      competitions: {
+        Row: {
+          country: string | null
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          country?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      historical_results: {
+        Row: {
+          away_goals: number
+          away_team: string
+          competition: string | null
+          home_goals: number
+          home_team: string
+          id: string
+          match_date: string
+        }
+        Insert: {
+          away_goals: number
+          away_team: string
+          competition?: string | null
+          home_goals: number
+          home_team: string
+          id?: string
+          match_date: string
+        }
+        Update: {
+          away_goals?: number
+          away_team?: string
+          competition?: string | null
+          home_goals?: number
+          home_team?: string
+          id?: string
+          match_date?: string
+        }
+        Relationships: []
+      }
+      matches: {
+        Row: {
+          away_score: number | null
+          away_team_id: string
+          competition_id: string
+          created_at: string
+          home_score: number | null
+          home_team_id: string
+          id: string
+          kickoff: string
+          source: string
+          stats_available: boolean
+          status: string
+        }
+        Insert: {
+          away_score?: number | null
+          away_team_id: string
+          competition_id: string
+          created_at?: string
+          home_score?: number | null
+          home_team_id: string
+          id?: string
+          kickoff: string
+          source?: string
+          stats_available?: boolean
+          status?: string
+        }
+        Update: {
+          away_score?: number | null
+          away_team_id?: string
+          competition_id?: string
+          created_at?: string
+          home_score?: number | null
+          home_team_id?: string
+          id?: string
+          kickoff?: string
+          source?: string
+          stats_available?: boolean
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_away_team_id_fkey"
+            columns: ["away_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_competition_id_fkey"
+            columns: ["competition_id"]
+            isOneToOne: false
+            referencedRelation: "competitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_home_team_id_fkey"
+            columns: ["home_team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdf_reports: {
+        Row: {
+          analysis_ids: string[]
+          cover_color: string
+          created_at: string
+          file_name: string
+          id: string
+          publication_date: string
+          published_at: string | null
+          status: string
+          subtitle: string
+          title: string
+        }
+        Insert: {
+          analysis_ids?: string[]
+          cover_color: string
+          created_at?: string
+          file_name: string
+          id?: string
+          publication_date: string
+          published_at?: string | null
+          status?: string
+          subtitle?: string
+          title: string
+        }
+        Update: {
+          analysis_ids?: string[]
+          cover_color?: string
+          created_at?: string
+          file_name?: string
+          id?: string
+          publication_date?: string
+          published_at?: string | null
+          status?: string
+          subtitle?: string
+          title?: string
+        }
+        Relationships: []
+      }
+      sync_logs: {
+        Row: {
+          created_at: string
+          id: string
+          level: string
+          message: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          level: string
+          message: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          level?: string
+          message?: string
+        }
+        Relationships: []
+      }
+      team_match_stats: {
+        Row: {
+          goals_against: number
+          goals_for: number
+          id: string
+          match_date: string
+          opponent: string
+          source: string
+          team_id: string
+          venue: string
+        }
+        Insert: {
+          goals_against: number
+          goals_for: number
+          id?: string
+          match_date: string
+          opponent: string
+          source?: string
+          team_id: string
+          venue: string
+        }
+        Update: {
+          goals_against?: number
+          goals_for?: number
+          id?: string
+          match_date?: string
+          opponent?: string
+          source?: string
+          team_id?: string
+          venue?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_match_stats_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teams: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_exists: { Args: never; Returns: boolean }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +449,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin"],
+    },
   },
 } as const
