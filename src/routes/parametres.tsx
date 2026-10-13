@@ -29,7 +29,7 @@ function Settings() {
           </dl>
         </Card>
         <Card title="Stockage">
-          <p className="text-sm text-muted-foreground">Les données sont actuellement enregistrées dans ce navigateur uniquement. Une base de données en ligne sera connectée à l'étape suivante.</p>
+          <p className="text-sm text-muted-foreground">Les données de démonstration restent dans ce navigateur. Les données réelles sont enregistrées en ligne et réservées à l'administrateur. Ces boutons ne touchent que la démo.</p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Button variant="secondary" onClick={() => { clearDemo(); toast.success("Données de démonstration supprimées"); }}>Supprimer la démo</Button>
             <Button variant="danger" onClick={() => { if (confirm("Tout réinitialiser avec les données de démonstration ?")) { resetDemo(); toast.success("Réinitialisé"); } }}>Réinitialiser</Button>
