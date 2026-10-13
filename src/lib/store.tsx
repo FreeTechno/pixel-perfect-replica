@@ -1,13 +1,28 @@
-// État de l'application (stockage local du navigateur pour cette première étape).
+// État de l'application. Deux espaces strictement séparés :
+// - "demo" : données fictives, stockées dans ce navigateur uniquement ;
+// - "real" : données réelles, chargées et enregistrées en ligne (administrateur connecté).
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { createDemoData } from "./demo-data";
-import type { AnalysisStatus, AppData, Ebook, Match } from "./types";
+import { loadRealData, saveAnalysis, saveEbook, saveMatches } from "./remote";
+import type { Analysis, AnalysisStatus, AppData, Ebook, Match } from "./types";
 
 const KEY = "footdata-v1";
+const MODE_KEY = "footdata-mode";
+export type DataMode = "demo" | "real";
+
+const empty = (): AppData => ({ matches: [], histories: [], h2h: [], analyses: [], ebooks: [], logs: [], lastSync: null });
 
 interface Store {
   data: AppData;
   ready: boolean;
+  mode: DataMode;
+  setMode: (m: DataMode) => void;
+  userEmail: string | null;
+  isAdmin: boolean;
+  authChecked: boolean;
+  reload: () => Promise<void>;
   setAnalysisStatus: (id: string, status: AnalysisStatus) => void;
   addNote: (id: string, text: string) => void;
   updateAnalysis: (id: string, patch: { summary?: string; selection?: string }) => void;
@@ -15,74 +30,128 @@ interface Store {
   setOutcome: (id: string, outcome: "réussie" | "échouée" | null) => void;
   addEbook: (e: Ebook) => void;
   publishEbook: (id: string) => void;
-  importMatches: (m: Match[]) => void;
+  importMatches: (m: Match[]) => Promise<number>;
   resetDemo: () => void;
   clearDemo: () => void;
 }
 
 const Ctx = createContext<Store | null>(null);
 const nowIso = () => new Date().toISOString();
+const fail = (e: unknown) => toast.error(`Échec de l'enregistrement en ligne : ${e instanceof Error ? e.message : e}`);
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<AppData>(createDemoData);
+  const [demo, setDemo] = useState<AppData>(createDemoData);
+  const [real, setReal] = useState<AppData>(empty);
+  const [mode, setModeState] = useState<DataMode>("demo");
   const [ready, setReady] = useState(false);
+  const [realReady, setRealReady] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) setData(JSON.parse(raw));
+      if (raw) setDemo(JSON.parse(raw));
+      if (localStorage.getItem(MODE_KEY) === "real") setModeState("real");
     } catch { /* données corrompues : on garde la démo */ }
     setReady(true);
   }, []);
 
-  useEffect(() => {
-    if (ready) localStorage.setItem(KEY, JSON.stringify(data));
-  }, [data, ready]);
+  useEffect(() => { if (ready) localStorage.setItem(KEY, JSON.stringify(demo)); }, [demo, ready]);
 
-  const mapA = useCallback((id: string, fn: (a: AppData["analyses"][number]) => AppData["analyses"][number]) =>
-    setData((d) => ({ ...d, analyses: d.analyses.map((a) => (a.id === id ? { ...fn(a), updatedAt: nowIso() } : a)) })), []);
+  const refreshAuth = useCallback(async () => {
+    const { data } = await supabase.auth.getUser();
+    const u = data.user;
+    setUserEmail(u?.email ?? null);
+    if (u) {
+      const { data: role } = await supabase.from("user_roles").select("role").eq("user_id", u.id).eq("role", "admin").maybeSingle();
+      setIsAdmin(!!role);
+    } else setIsAdmin(false);
+    setAuthChecked(true);
+  }, []);
+
+  useEffect(() => {
+    void refreshAuth();
+    const { data: sub } = supabase.auth.onAuthStateChange((ev) => {
+      if (ev === "SIGNED_IN" || ev === "SIGNED_OUT" || ev === "USER_UPDATED") void refreshAuth();
+    });
+    return () => sub.subscription.unsubscribe();
+  }, [refreshAuth]);
+
+  const reload = useCallback(async () => {
+    setRealReady(false);
+    try { setReal(await loadRealData()); } catch (e) { toast.error(`Chargement impossible : ${e instanceof Error ? e.message : e}`); }
+    setRealReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (mode === "real" && isAdmin) void reload();
+    if (!isAdmin) setReal(empty());
+  }, [mode, isAdmin, reload]);
+
+  const setMode = (m: DataMode) => { setModeState(m); localStorage.setItem(MODE_KEY, m); };
+  const isReal = mode === "real";
+  const data = isReal ? real : demo;
+  const setData = isReal ? setReal : setDemo;
+
+  const mapA = (id: string, fn: (a: Analysis) => Analysis) => {
+    let next: Analysis | undefined;
+    setData((d) => ({ ...d, analyses: d.analyses.map((a) => (a.id === id ? (next = { ...fn(a), updatedAt: nowIso() }) : a)) }));
+    if (isReal) {
+      const cur = real.analyses.find((a) => a.id === id);
+      if (cur) saveAnalysis(next ?? { ...fn(cur), updatedAt: nowIso() }).catch(fail);
+    }
+  };
 
   const store: Store = {
     data,
-    ready,
+    ready: ready && (!isReal || realReady),
+    mode, setMode, userEmail, isAdmin, authChecked, reload,
     setAnalysisStatus: (id, status) => mapA(id, (a) => ({ ...a, status })),
     addNote: (id, text) => mapA(id, (a) => ({ ...a, notes: [...a.notes, { date: nowIso(), text }] })),
     updateAnalysis: (id, patch) => mapA(id, (a) => ({ ...a, ...patch, status: a.status === "validée" ? "à vérifier" : a.status })),
     setOutcome: (id, outcome) => mapA(id, (a) => ({ ...a, outcome })),
     createAnalysis: (matchId) => {
-      const id = `a-${Date.now()}`;
-      setData((d) => ({ ...d, analyses: [...d.analyses, {
-        id, matchId, status: "brouillon", summary: "", selection: "", notes: [], outcome: null, updatedAt: nowIso(),
-      }] }));
+      const id = isReal ? crypto.randomUUID() : `a-${Date.now()}`;
+      const a: Analysis = { id, matchId, status: "brouillon", summary: "", selection: "", notes: [], outcome: null, updatedAt: nowIso() };
+      setData((d) => ({ ...d, analyses: [...d.analyses, a] }));
+      if (isReal) saveAnalysis(a).catch(fail);
       return id;
     },
-    addEbook: (e) => setData((d) => ({ ...d, ebooks: [e, ...d.ebooks] })),
-    publishEbook: (id) => setData((d) => {
-      const eb = d.ebooks.find((e) => e.id === id);
-      return {
+    addEbook: (e) => {
+      const eb = isReal ? { ...e, id: crypto.randomUUID() } : e;
+      setData((d) => ({ ...d, ebooks: [eb, ...d.ebooks] }));
+      if (isReal) saveEbook(eb).catch(fail);
+    },
+    publishEbook: (id) => {
+      const eb = data.ebooks.find((e) => e.id === id);
+      if (!eb) return;
+      const pub = { ...eb, status: "publié" as const, publishedAt: nowIso() };
+      setData((d) => ({
         ...d,
-        ebooks: d.ebooks.map((e) => (e.id === id ? { ...e, status: "publié", publishedAt: nowIso() } : e)),
-        analyses: d.analyses.map((a) => (eb?.analysisIds.includes(a.id) ? { ...a, status: "publiée" } : a)),
-      };
-    }),
-    importMatches: (m) => setData((d) => ({
-      ...d,
-      matches: [...d.matches, ...m],
-      lastSync: nowIso(),
-      logs: [{ date: nowIso(), level: "info", message: `Import CSV : ${m.length} match(s) ajouté(s).` }, ...d.logs],
-    })),
-    resetDemo: () => setData(createDemoData()),
-    clearDemo: () => setData((d) => {
-      const keep = new Set(d.matches.filter((m) => !m.isDemo).map((m) => m.id));
-      return {
-        ...d,
-        matches: d.matches.filter((m) => keep.has(m.id)),
-        histories: d.histories.filter((h) => !h.isDemo),
-        h2h: [],
-        analyses: d.analyses.filter((a) => keep.has(a.matchId)),
-        ebooks: [],
-      };
-    }),
+        ebooks: d.ebooks.map((e) => (e.id === id ? pub : e)),
+        analyses: d.analyses.map((a) => (eb.analysisIds.includes(a.id) ? { ...a, status: "publiée" } : a)),
+      }));
+      if (isReal) {
+        saveEbook(pub).catch(fail);
+        real.analyses.filter((a) => eb.analysisIds.includes(a.id)).forEach((a) => saveAnalysis({ ...a, status: "publiée" }).catch(fail));
+      }
+    },
+    importMatches: async (m) => {
+      if (isReal) {
+        const n = await saveMatches(m);
+        await reload();
+        return n;
+      }
+      setDemo((d) => ({
+        ...d, matches: [...d.matches, ...m], lastSync: nowIso(),
+        logs: [{ date: nowIso(), level: "info", message: `Import CSV : ${m.length} match(s) ajouté(s).` }, ...d.logs],
+      }));
+      return m.length;
+    },
+    resetDemo: () => setDemo(createDemoData()),
+    clearDemo: () => setDemo(empty()),
   };
 
   return <Ctx.Provider value={store}>{children}</Ctx.Provider>;
