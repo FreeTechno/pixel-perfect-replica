@@ -32,7 +32,7 @@ export function AuthPanel() {
       ? await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin } })
       : await supabase.auth.signInWithPassword({ email, password });
     setBusy(false);
-    if (r.error) return toast.error(r.error.message);
+    if (r.error) { toast.error(r.error.message); return; }
     if (signup && !r.data.session) toast.success("Vérifiez votre e-mail pour confirmer le compte.");
   };
 

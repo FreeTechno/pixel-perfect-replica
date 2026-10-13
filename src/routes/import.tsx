@@ -15,6 +15,7 @@ export const Route = createFileRoute("/import")({
 
 function ImportPage() {
   const { importMatches, data, mode } = useStore();
+  const [res, setRes] = useState<CsvResult | null>(null);
   const [saving, setSaving] = useState(false);
   const key = (m: { home: string; away: string; kickoff: string }) => `${m.home.toLowerCase()}|${m.away.toLowerCase()}|${new Date(m.kickoff).getTime()}`;
   const existing = new Set(data.matches.map(key));
@@ -28,7 +29,6 @@ function ImportPage() {
     catch (e) { toast.error(`Échec : ${e instanceof Error ? e.message : e}`); }
     setSaving(false);
   };
-  const [res, setRes] = useState<CsvResult | null>(null);
 
   const onFile = async (f?: File) => { if (f) setRes(parseMatchesCsv(await f.text())); };
   const template = () => {
