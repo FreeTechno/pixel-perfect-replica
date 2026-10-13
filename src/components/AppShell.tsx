@@ -4,6 +4,43 @@ import {
   LayoutDashboard, CalendarDays, BarChart3, ShieldCheck, BookOpen, History, TrendingUp, Upload, Settings, Menu, X, Activity,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useStore } from "@/lib/store";
+import { supabase } from "@/integrations/supabase/client";
+import { AuthPanel } from "@/components/AuthPanel";
+
+function ModeSwitch() {
+  const { mode, setMode, userEmail } = useStore();
+  return (
+    <div className="space-y-2 px-1">
+      <div role="group" aria-label="Source des données" className="grid grid-cols-2 gap-1 rounded-lg border p-1 text-xs">
+        {(["demo", "real"] as const).map((m) => (
+          <button key={m} onClick={() => setMode(m)} aria-pressed={mode === m}
+            className={cn("rounded-md px-2 py-1.5 font-medium", mode === m ? (m === "demo" ? "bg-warning/20 text-warning" : "bg-success/20 text-success") : "text-muted-foreground hover:text-foreground")}>
+            {m === "demo" ? "Démo" : "Réel"}
+          </button>
+        ))}
+      </div>
+      {userEmail && (
+        <div className="flex items-center justify-between gap-2 px-2 text-[11px] text-muted-foreground">
+          <span className="truncate">{userEmail}</span>
+          <button className="shrink-0 hover:text-foreground" onClick={() => supabase.auth.signOut()}>Déconnexion</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ModeBanner() {
+  const { mode } = useStore();
+  return mode === "demo"
+    ? <div className="mb-5 rounded-lg bg-warning/10 px-3 py-2 text-xs text-warning">Mode démonstration : données fictives, enregistrées dans ce navigateur uniquement.</div>
+    : <div className="mb-5 rounded-lg bg-success/10 px-3 py-2 text-xs text-success">Données réelles : chargées et enregistrées en ligne.</div>;
+}
+
+function Gate({ children }: { children: ReactNode }) {
+  const { mode, isAdmin } = useStore();
+  return <><ModeBanner />{mode === "real" && !isAdmin ? <AuthPanel /> : children}</>;
+}
 
 const nav = [
   { to: "/", label: "Tableau de bord", icon: LayoutDashboard },
@@ -51,6 +88,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen w-full">
       <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col gap-6 border-r border-sidebar-border bg-sidebar py-5 px-3 lg:flex">
         <Brand />
+        <ModeSwitch />
         <NavLinks />
         <p className="mt-auto px-3 text-[11px] leading-relaxed text-muted-foreground">Outil d'analyse statistique. Aucun résultat n'est garanti.</p>
       </aside>
@@ -65,11 +103,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="absolute inset-0 bg-background/70" onClick={() => setOpen(false)} />
             <div className="absolute inset-y-0 left-0 flex w-72 flex-col gap-6 bg-sidebar p-4">
               <div className="flex items-center justify-between"><Brand /><button aria-label="Fermer" onClick={() => setOpen(false)} className="rounded-lg p-2 hover:bg-accent"><X className="h-5 w-5" /></button></div>
+              <ModeSwitch />
               <NavLinks onNavigate={() => setOpen(false)} />
             </div>
           </div>
         )}
-        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 lg:py-8">{children}</main>
+        <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6 sm:px-6 lg:py-8"><Gate>{children}</Gate></main>
       </div>
     </div>
   );
