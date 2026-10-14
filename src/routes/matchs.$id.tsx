@@ -19,7 +19,7 @@ function MatchDetail() {
   const m = data.matches.find((x) => x.id === id);
   if (!m) return ready ? <Empty title="Match introuvable" action={<Link to="/matchs" className="text-primary">Retour aux matchs</Link>} /> : null;
   const a = data.analyses.find((x) => x.matchId === m.id);
-  const h2h = headToHead(data.h2h, m.home, m.away);
+  const h2h = headToHead(data.h2h, m.home, m.away, m.kickoff);
 
   return (
     <>
@@ -29,8 +29,8 @@ function MatchDetail() {
           <Button onClick={() => { createAnalysis(m.id); nav({ to: "/validation" }); }}>Créer une analyse</Button>)}</>} />
       {m.score && <Card className="mb-4"><p className="num text-center text-3xl font-semibold">{m.score.home} – {m.score.away}</p></Card>}
       <div className="grid gap-4 md:grid-cols-2">
-        <TeamStatsPanel team={m.home} history={data.histories.find((h) => h.team === m.home)} />
-        <TeamStatsPanel team={m.away} history={data.histories.find((h) => h.team === m.away)} />
+        <TeamStatsPanel team={m.home} before={m.kickoff} history={data.histories.find((h) => h.team === m.home)} />
+        <TeamStatsPanel team={m.away} before={m.kickoff} history={data.histories.find((h) => h.team === m.away)} />
       </div>
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <Card title="Confrontations directes">
@@ -40,7 +40,7 @@ function MatchDetail() {
             ))}</ul>
           )}
         </Card>
-        <ProbabilitiesNotice />
+        <ProbabilitiesNotice match={m} histories={data.histories} />
       </div>
       {a && <Card title="Analyse" className="mt-4"><p className="text-sm">{a.selection && <strong>{a.selection} — </strong>}{a.summary || "Pas encore de texte."}</p></Card>}
     </>
