@@ -28,10 +28,10 @@ function Analyses() {
             </select>
           </Card>
           <div className="grid gap-4 md:grid-cols-2">
-            <TeamStatsPanel team={m.home} history={data.histories.find((h) => h.team === m.home)} />
-            <TeamStatsPanel team={m.away} history={data.histories.find((h) => h.team === m.away)} />
+            <TeamStatsPanel team={m.home} before={m.kickoff} history={data.histories.find((h) => h.team === m.home)} />
+            <TeamStatsPanel team={m.away} before={m.kickoff} history={data.histories.find((h) => h.team === m.away)} />
           </div>
-          <div className="mt-4"><ProbabilitiesNotice /></div>
+          <div className="mt-4"><ProbabilitiesNotice match={m} histories={data.histories} /></div>
         </>
       )}
     </>

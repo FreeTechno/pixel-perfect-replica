@@ -74,7 +74,7 @@ function Validation() {
                   </div>
                 )}
               </Card>
-              <SourceData teamA={m.home} teamB={m.away} source={m.source} />
+              <SourceData teamA={m.home} teamB={m.away} source={m.source} kickoff={m.kickoff} />
               <Card title="Notes de l'administrateur">
                 <ul className="mb-3 space-y-2">
                   {a.notes.length === 0 && <li className="text-sm text-muted-foreground">Aucune note.</li>}
@@ -93,9 +93,9 @@ function Validation() {
   );
 }
 
-function SourceData({ teamA, teamB, source }: { teamA: string; teamB: string; source: string }) {
+function SourceData({ teamA, teamB, source, kickoff }: { teamA: string; teamB: string; source: string; kickoff: string }) {
   const { data } = useStore();
-  const rows = [teamA, teamB].map((t) => ({ t, s: computeTeamStats(data.histories.find((h) => h.team === t)) }));
+  const rows = [teamA, teamB].map((t) => ({ t, s: computeTeamStats(data.histories.find((h) => h.team === t), { before: kickoff }) }));
   return (
     <Card title={`Données sources · ${source}`}>
       <div className="grid gap-3 sm:grid-cols-2">
