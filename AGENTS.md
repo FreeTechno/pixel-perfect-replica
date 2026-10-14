@@ -11,4 +11,4 @@
 
 - `src/lib/store.tsx` holds two isolated datasets: demo (localStorage only) and real (Cloud via `src/lib/remote.ts`, admin-only RLS); why: demo data must never reach real storage.
 - Domain logic is split by module in `src/lib/` (csv = collecte, stats, pdf, store = validation/history); why: each can later move server-side independently.
-- Probabilities are never displayed until a real model exists (`computeProbabilities` returns null); why: no fictitious figures.
+- Probabilities come only from `computeProbabilities` in `src/lib/stats.ts` (Poisson, pre-kickoff data only, min sample, returns a reason when invalid); explanatory copy lives in `stats-text.ts`; why: traceable, leak-free figures.
