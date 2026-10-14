@@ -62,8 +62,8 @@ export async function generateEbookPdf(ebook: Omit<Ebook, "status" | "createdAt"
     doc.setFontSize(10);
     doc.text(`${m.league} · ${fmtDateTime(m.kickoff)}${m.isDemo ? " · DONNÉES DE DÉMONSTRATION" : ""}`, 20, 32);
 
-    const hs = computeTeamStats(data.histories.find((h) => h.team === m.home));
-    const as = computeTeamStats(data.histories.find((h) => h.team === m.away));
+    const hs = computeTeamStats(data.histories.find((h) => h.team === m.home), { before: m.kickoff });
+    const as = computeTeamStats(data.histories.find((h) => h.team === m.away), { before: m.kickoff });
     const row = (label: string, f: (s: NonNullable<typeof hs>) => string) =>
       [label, hs ? f(hs) : "Non disponible", as ? f(as) : "Non disponible"];
     autoTable(doc, {
@@ -82,7 +82,7 @@ export async function generateEbookPdf(ebook: Omit<Ebook, "status" | "createdAt"
     });
     // @ts-expect-error lastAutoTable ajouté par le plugin
     let y = doc.lastAutoTable.finalY + 10;
-    const h2h = headToHead(data.h2h, m.home, m.away);
+    const h2h = headToHead(data.h2h, m.home, m.away, m.kickoff);
     doc.setFont("helvetica", "bold");
     doc.text("Confrontations directes", 20, y);
     doc.setFont("helvetica", "normal");
